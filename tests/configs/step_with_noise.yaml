@@ -1,0 +1,27 @@
+# 阶跃响应 + 高斯噪声
+
+y0: [0.0, 0.0]
+
+dt: 0.01
+t_end: 10.0
+method: RK45
+
+plant_type: MassSpringDamper
+plant_params:
+  m: 1.0
+  c: 0.5
+  k: 2.0
+
+controller_type: StepInput
+controller_params:
+  amplitude: 1.0
+  t_step: 0.0
+
+# 高斯噪声扰动
+disturbance_type: GaussianNoise
+disturbance_params:
+  std: 0.2
+  mean: 0.0
+  seed: 42
+
+label: "step + gaussian noise"

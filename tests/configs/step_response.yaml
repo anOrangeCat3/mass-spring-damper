@@ -1,0 +1,24 @@
+# 单位阶跃响应配置
+
+# 初始条件 [位移, 速度]
+y0: [0.0, 0.0]
+
+# 仿真参数
+dt: 0.01
+t_end: 10.0
+method: RK45
+
+# 物理模型
+plant_type: MassSpringDamper
+plant_params:
+  m: 1.0
+  c: 0.5
+  k: 2.0
+
+# 控制器
+controller_type: StepInput
+controller_params:
+  amplitude: 1.0
+  t_step: 0.0
+
+label: "default"
