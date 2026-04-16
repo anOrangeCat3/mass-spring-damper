@@ -1,13 +1,14 @@
 """扰动模块单元测试。"""
 
+from pathlib import Path
+
 import pytest
 import numpy as np
 
-import sys
-sys.path.insert(0, "..")
-
 from msd import SineDisturbance, GaussianNoise, CompositeDisturbance
 from msd import SimConfig, run_from_config
+
+CONFIGS_DIR = Path(__file__).parent / "configs"
 
 
 def test_sine_disturbance_amplitude():
@@ -38,8 +39,8 @@ def test_composite_disturbance():
 
 def test_disturbance_affects_response():
     """有扰动的响应应与无扰动不同。"""
-    cfg_clean = SimConfig.from_yaml("configs/step_response.yaml")
-    cfg_noisy = SimConfig.from_yaml("configs/step_with_disturbance.yaml")
+    cfg_clean = SimConfig.from_yaml(str(CONFIGS_DIR / "step_response.yaml"))
+    cfg_noisy = SimConfig.from_yaml(str(CONFIGS_DIR / "step_with_disturbance.yaml"))
 
     result_clean = run_from_config(cfg_clean)
     result_noisy = run_from_config(cfg_noisy)

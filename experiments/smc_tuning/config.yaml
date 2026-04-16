@@ -1,0 +1,50 @@
+# SMC 调参实验配置
+# η / λ 参数扫描，经典 sign 切换，有正弦扰动，无输出限幅
+
+y0: [0.0, 0.0]
+dt: 0.01
+t_end: 10.0
+method: RK45
+
+plant_type: MassSpringDamper
+plant_params:
+  m: 1.0
+  c: 0.5
+  k: 2.0
+
+controller_type: SMC
+controller_params:
+  m: 1.0
+  c: 0.5
+  k: 2.0
+  lambda_: 5.0
+  eta: 1.0
+  # 经典 sign，无平滑，无限幅
+
+reference_type: Step
+reference_params:
+  value: 1.0
+  t_step: 0.0
+
+disturbance_type: Sine
+disturbance_params:
+  amplitude: 0.5
+  frequency: 1.0
+
+# 参数扫描
+sweeps:
+  eta_sweep:
+    param_path: controller_params.eta
+    values: [0.5, 1.0, 2.0, 5.0, 10.0]
+  lambda_sweep:
+    param_path: controller_params.lambda_
+    values: [1, 2, 5, 10, 20]
+
+metrics:
+  - overshoot
+  - settling_time
+  - rise_time
+  - steady_state_error
+  - rmse
+  - max_control
+  - control_energy

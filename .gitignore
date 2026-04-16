@@ -17,9 +17,12 @@ env/
 *.swp
 *.swo
 
-# Simulation results (generated data)
-results/
-
 # OS
 .DS_Store
 Thumbs.db
+
+# Experiments: only keep run.py and config.yaml, ignore results
+experiments/*/results/
+
+# Tests: ignore generated output
+tests/output/

@@ -5,8 +5,7 @@ from .disturbance import Disturbance, SineDisturbance, GaussianNoise, CompositeD
 from .result import SimResult
 from .simulator import Simulator
 from .visualizer import Visualizer
-from .metrics import compute_metrics, select_metrics, format_metrics_table
-from .experiment import ParameterSweep, ControllerComparison
+from .metrics import compute_metrics, format_metrics_table
 from .config import (
     SimConfig, run_from_config,
     build_plant, build_controller, build_reference, build_disturbance,

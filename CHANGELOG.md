@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.1] - 2026-04-16
+
+### Summary
+
+实验框架重构：每个实验独立目录（config.yaml + run.py），metrics 拆分为独立函数，删除 experiment.py。
+
+### Changed
+
+- `msd/metrics.py`：每个指标拆分为独立函数（overshoot, settling_time, rmse 等），支持按需调用；保留 `compute_metrics()` 批量接口，新增 `names` 参数选择计算哪些指标
+- 删除 `msd/experiment.py`（ParameterSweep / ControllerComparison），各实验脚本自包含
+- `experiments/` 从扁平脚本重构为独立目录结构，每个实验含 `config.yaml`（外部参数）+ `run.py`（运行逻辑）+ `results/`（gitignored）
+- `.gitignore`：experiments/ 下仅跟踪 run.py 和 config.yaml，results/ 忽略
+- 删除根目录 `results/` 旧数据
+
+### Added
+
+- `docs/experiments.md`：实验框架文档
+
 ## [0.1.0] - 2026-04-16
 
 ### Summary

@@ -1,0 +1,45 @@
+# 轨迹对比实验配置
+# 同一控制器在不同参考轨迹下的表现
+
+y0: [0.0, 0.0]
+dt: 0.01
+t_end: 10.0
+method: RK45
+
+plant_type: MassSpringDamper
+plant_params:
+  m: 1.0
+  c: 0.5
+  k: 2.0
+
+# 要测试的控制器
+controllers:
+  PID:
+    controller_type: PID
+    controller_params:
+      kp: 10.0
+      ki: 5.0
+      kd: 4.0
+  SMC:
+    controller_type: SMC
+    controller_params:
+      m: 1.0
+      c: 0.5
+      k: 2.0
+      lambda_: 5.0
+      eta: 1.0
+      smoothing: sat
+      phi: 0.5
+      estimate_reference_derivative: false  # 按需在代码中为时变参考开启
+
+# 要测试的参考轨迹
+references:
+  Step:
+    reference_params: {value: 1.0, t_step: 0.0}
+    metrics: [overshoot, settling_time, rise_time, steady_state_error, rmse, max_control, control_energy]
+  Ramp:
+    reference_params: {slope: 0.5, t_start: 0.0}
+    metrics: [steady_state_error, rmse, iae, max_control, control_energy]
+  Sine:
+    reference_params: {amplitude: 1.0, frequency: 0.5}
+    metrics: [rmse, iae, phase_lag, max_control, control_energy]

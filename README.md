@@ -9,9 +9,9 @@
 - **参考轨迹**：Constant / Step / Ramp / Sine
 - **扰动模型**：正弦扰动、高斯噪声、复合扰动
 - **YAML 配置驱动**：所有参数通过配置文件管理，无需修改代码
-- **性能指标**：自动计算超调量、调节时间、RMSE、控制能量等指标
-- **实验框架**：参数扫描、控制器对比，自动生成图表和报告
-- **结果自动保存**：每次仿真/实验自动保存 config + data + 图表 + 报告
+- **性能指标**：独立函数按需调用，支持 overshoot、settling_time、RMSE、控制能量等
+- **实验框架**：每个实验独立目录（config.yaml + run.py），可复现
+- **结果自动保存**：每次实验自动保存 data + 图表 + 报告
 
 ## Installation
 
@@ -33,72 +33,71 @@ cd tests && python3 -m pytest -v
 
 ```bash
 # PID 调参实验（Kp/Ki/Kd 参数扫描）
-cd experiments && python3 pid_tuning.py
+cd experiments/pid_tuning && python run.py
 
 # SMC 调参实验（η/λ 扫描 + 切换函数对比）
-cd experiments && python3 smc_tuning.py
+cd experiments/smc_tuning && python run.py
 
 # PID vs SMC 控制器对比
-cd experiments && python3 controller_comparison.py
+cd experiments/controller_comparison && python run.py
 
 # 不同轨迹对比
-cd experiments && python3 trajectory_comparison.py
+cd experiments/trajectory_comparison && python run.py
 ```
+
+每个实验从同目录 `config.yaml` 读取参数，结果保存在 `results/` 子目录。修改 `config.yaml` 即可调整参数，无需改代码。
 
 ### Python API
 
 ```python
-from msd import SimConfig, run_from_config, compute_metrics, ParameterSweep
+from msd import SimConfig, run_from_config, Visualizer
+from msd.metrics import compute_metrics, overshoot, rmse
 
 # 单次仿真
 config = SimConfig.from_yaml("tests/configs/pid_step.yaml")
 result = run_from_config(config)
-result.metrics = compute_metrics(result)
+result.metrics = compute_metrics(result, ["rmse", "overshoot", "settling_time"])
 
-# 参数扫描实验
-sweep = ParameterSweep(
-    name="pid_kp_sweep",
-    base_config=config,
-    param_path="controller_params.kp",
-    values=[2, 5, 10, 20, 50],
-)
-sweep.run_and_save("results")
+# 按需调用单个指标
+print(f"RMSE = {rmse(result):.4f}")
+print(f"Overshoot = {overshoot(result):.2f}%")
 ```
 
 ## Project Structure
 
 ```
 mass_spring_damper/
-├── msd/                    # 核心库
-│   ├── plant.py            # 被控对象（MassSpringDamper）
-│   ├── controller/         # 控制器包
-│   │   ├── base.py         # 控制器抽象基类（含 extras 机制）
-│   │   ├── step_input.py   # 开环阶跃输入
-│   │   ├── pid.py          # PID 控制器
-│   │   ├── smc.py          # 滑模控制器
-│   │   └── cascade.py      # 级联控制器（占位）
-│   ├── reference.py        # 参考轨迹
-│   ├── disturbance.py      # 扰动模型
-│   ├── simulator.py        # 仿真器
-│   ├── visualizer.py       # 可视化（时域图、相图、指标图）
-│   ├── result.py           # 仿真结果数据类
-│   ├── metrics.py          # 性能指标计算
-│   ├── experiment.py       # 实验运行器（参数扫描、控制器对比）
-│   └── config.py           # 配置系统与工厂函数
-├── experiments/            # 实验脚本
-│   ├── pid_tuning.py       # PID 调参
-│   ├── smc_tuning.py       # SMC 调参
-│   ├── controller_comparison.py  # 控制器对比
-│   └── trajectory_comparison.py  # 轨迹对比
-├── tests/                  # pytest 单元测试
-│   ├── configs/            # YAML 配置文件
+├── msd/                        # 核心库
+│   ├── plant.py                # 被控对象（MassSpringDamper）
+│   ├── controller/             # 控制器包
+│   │   ├── base.py             # 控制器抽象基类（含 extras 机制）
+│   │   ├── step_input.py       # 开环阶跃输入
+│   │   ├── pid.py              # PID 控制器
+│   │   ├── smc.py              # 滑模控制器
+│   │   └── cascade.py          # 级联控制器（占位）
+│   ├── reference.py            # 参考轨迹
+│   ├── disturbance.py          # 扰动模型
+│   ├── simulator.py            # 仿真器
+│   ├── visualizer.py           # 可视化
+│   ├── result.py               # 仿真结果数据类
+│   ├── metrics.py              # 性能指标（独立函数）
+│   └── config.py               # 配置系统与工厂函数
+├── experiments/                # 实验（每个独立目录）
+│   ├── pid_tuning/             # PID 调参
+│   │   ├── config.yaml
+│   │   ├── run.py
+│   │   └── results/            # gitignored
+│   ├── smc_tuning/             # SMC 调参
+│   ├── controller_comparison/  # 控制器对比
+│   └── trajectory_comparison/  # 轨迹对比
+├── tests/                      # pytest 单元测试
+│   ├── configs/                # YAML 配置文件
 │   ├── test_plant.py
 │   ├── test_simulator.py
 │   ├── test_pid.py
 │   ├── test_smc.py
 │   └── test_disturbance.py
-├── docs/                   # 技术文档
-├── results/                # 实验输出（gitignored）
+├── docs/                       # 技术文档
 ├── requirements.txt
 └── CHANGELOG.md
 ```
@@ -115,7 +114,7 @@ mass_spring_damper/
 - [参考轨迹](docs/reference.md)
 - [扰动模型](docs/disturbance.md)
 - [仿真器](docs/simulator.md)
-- [重构计划](docs/refactoring-001.md)
+- [实验框架](docs/experiments.md)
 
 ## License
 
