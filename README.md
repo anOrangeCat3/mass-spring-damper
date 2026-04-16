@@ -5,7 +5,7 @@
 ## Features
 
 - **模块化架构**：Plant / Controller / Reference / Disturbance / Simulator / Visualizer 各模块独立，通过注册表自由组合
-- **控制器**：StepInput（开环阶跃）、PID（带积分抗饱和与微分滤波）、SMC / Cascade 预留
+- **控制器**：StepInput（开环阶跃）、PID（积分抗饱和 + 微分滤波）、SMC（滑模控制）、Cascade 预留
 - **参考轨迹**：Constant / Step / Ramp / Sine
 - **扰动模型**：正弦扰动、高斯噪声、复合扰动
 - **YAML 配置驱动**：所有参数通过配置文件管理，无需修改代码
@@ -27,6 +27,9 @@ python tests/step_response.py
 
 # 运行 PID 控制测试（含 Kp 参数扫描）
 python tests/test_pid.py
+
+# 运行 SMC 控制测试（含切换函数对比和 η 扫描）
+python tests/test_smc.py
 ```
 
 也可以在 Python 中直接调用：
@@ -47,7 +50,7 @@ mass_spring_damper/
 │   │   ├── base.py         # 控制器抽象基类
 │   │   ├── step_input.py   # 开环阶跃输入
 │   │   ├── pid.py          # PID 控制器
-│   │   ├── smc.py          # 滑模控制器（占位）
+│   │   ├── smc.py          # 滑模控制器
 │   │   └── cascade.py      # 级联控制器（占位）
 │   ├── reference.py        # 参考轨迹
 │   ├── disturbance.py      # 扰动模型
@@ -67,6 +70,7 @@ mass_spring_damper/
 
 详细文档见 [`docs/`](docs/) 目录：
 
+- [使用方法](docs/usage.md)
 - [架构概览](docs/architecture.md)
 - [配置系统](docs/config.md)
 - [物理模型](docs/plant.md)

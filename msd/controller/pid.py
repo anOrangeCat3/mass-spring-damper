@@ -5,7 +5,7 @@ from .base import Controller
 
 
 class PIDController(Controller):
-    """位置式 PID 控制器，支持输出限幅和积分抗饱和。
+    """位置式 PID 控制器。
 
     Args:
         kp: 比例增益
@@ -13,10 +13,13 @@ class PIDController(Controller):
         kd: 微分增益
         dt: 控制周期 (s)，由 build_controller 自动注入
         state_index: 跟踪的状态量索引（0=位移, 1=速度），用于级联控制
-        u_min: 控制输出下限
-        u_max: 控制输出上限
         derivative_on_measurement: True 则微分作用于测量值（避免阶跃微分冲击），
                                    False 则作用于误差
+        u_min: 控制输出下限（可选扩展，默认无限幅）
+        u_max: 控制输出上限（可选扩展，默认无限幅）
+
+    Returns:
+        compute() 返回控制力 u (float)
     """
 
     def __init__(
@@ -26,18 +29,19 @@ class PIDController(Controller):
         kd: float = 0.0,
         dt: float = 0.01,
         state_index: int = 0,
+        derivative_on_measurement: bool = True,
         u_min: float = -np.inf,
         u_max: float = np.inf,
-        derivative_on_measurement: bool = True,
     ):
         self.kp = kp
         self.ki = ki
         self.kd = kd
         self.dt = dt
         self.state_index = state_index
+        self.derivative_on_measurement = derivative_on_measurement
         self.u_min = u_min
         self.u_max = u_max
-        self.derivative_on_measurement = derivative_on_measurement
+        self._saturated = not (np.isinf(u_min) and np.isinf(u_max))
 
         self._integral = 0.0
         self._prev_error = None
@@ -67,15 +71,14 @@ class PIDController(Controller):
             else:
                 d_term = self.kd * (error - self._prev_error) / self.dt
 
-        # 无限幅输出
-        u_raw = p_term + i_term + d_term
+        u = p_term + i_term + d_term
 
-        # 限幅
-        u = np.clip(u_raw, self.u_min, self.u_max)
-
-        # 积分抗饱和：输出饱和时回退本次积分累积
-        if u != u_raw:
-            self._integral -= error * self.dt
+        # 可选输出限幅 + clamping 积分抗饱和
+        if self._saturated:
+            u_clipped = float(np.clip(u, self.u_min, self.u_max))
+            if u_clipped != u:
+                self._integral -= error * self.dt
+            u = u_clipped
 
         # 更新历史值
         self._prev_error = error

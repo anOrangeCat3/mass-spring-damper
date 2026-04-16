@@ -1,5 +1,5 @@
 from .plant import Plant, MassSpringDamper
-from .controller import Controller, StepInput, PIDController
+from .controller import Controller, StepInput, PIDController, SMCController
 from .reference import Reference, ConstantReference, StepReference, RampReference, SineReference
 from .disturbance import Disturbance, SineDisturbance, GaussianNoise, CompositeDisturbance
 from .result import SimResult

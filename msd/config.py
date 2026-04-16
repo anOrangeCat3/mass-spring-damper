@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 
 from .plant import Plant, MassSpringDamper
-from .controller import Controller, StepInput, PIDController
+from .controller import Controller, StepInput, PIDController, SMCController
 from .reference import Reference, ConstantReference, StepReference, RampReference, SineReference
 from .disturbance import Disturbance, SineDisturbance, GaussianNoise, CompositeDisturbance
 from .result import SimResult
@@ -88,6 +88,7 @@ PLANT_REGISTRY: dict[str, type[Plant]] = {
 CONTROLLER_REGISTRY: dict[str, type[Controller]] = {
     "StepInput": StepInput,
     "PID": PIDController,
+    "SMC": SMCController,
 }
 
 REFERENCE_REGISTRY: dict[str, type[Reference]] = {

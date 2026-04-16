@@ -3,3 +3,4 @@
 from .base import Controller
 from .step_input import StepInput
 from .pid import PIDController
+from .smc import SMCController

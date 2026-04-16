@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.0.5] - 2026-04-16
+
+### Summary
+
+新增 SMC 滑模控制器，统一 PID/SMC 输出限幅为可选扩展，新增使用方法文档。
+
+### Added
+
+- SMCController 实现（`msd/controller/smc.py`）：基于线性滑模面 s = ė + λe，等效控制 + 切换控制
+  - 默认经典 sign(s) 切换函数
+  - 可选抖振抑制扩展：`smoothing="sat"` 饱和函数、`smoothing="tanh"` 双曲正切，通过 `phi` 控制边界层厚度
+  - 可选输出限幅扩展：`u_min` / `u_max`
+  - 可选参考轨迹导数估计：`estimate_reference_derivative=True` 支持时变参考跟踪
+- `CONTROLLER_REGISTRY` 注册 SMC 类型
+- SMC 测试配置（`tests/configs/smc_step.yaml`）及测试脚本（`tests/test_smc.py`，含切换函数对比和 η 参数扫描）
+- 技术文档：`docs/usage.md` 使用方法文档（工作流、YAML 配置详解、参数扫描、可视化、结果保存加载、新增控制器指南）
+- 技术文档：`docs/controller.md` 更新 SMC 章节
+
+### Changed
+
+- PIDController 输出限幅改为可选扩展：`u_min` / `u_max` 默认 ±inf（无限幅），仅显式配置时才执行 clip 和 clamping 积分抗饱和
+- `docs/controller.md` PID 章节更新，限幅和抗饱和标注为可选扩展
+
 ## [0.0.4] - 2026-04-15
 
 ### Summary
