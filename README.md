@@ -9,7 +9,9 @@
 - **参考轨迹**：Constant / Step / Ramp / Sine
 - **扰动模型**：正弦扰动、高斯噪声、复合扰动
 - **YAML 配置驱动**：所有参数通过配置文件管理，无需修改代码
-- **结果自动保存**：每次仿真自动保存 config.yaml + data.npz + plot.png
+- **性能指标**：自动计算超调量、调节时间、RMSE、控制能量等指标
+- **实验框架**：参数扫描、控制器对比，自动生成图表和报告
+- **结果自动保存**：每次仿真/实验自动保存 config + data + 图表 + 报告
 
 ## Installation
 
@@ -21,23 +23,46 @@ pip install -r requirements.txt
 
 ## Quick Start
 
+### 运行单元测试
+
 ```bash
-# 运行阶跃响应仿真
-python tests/step_response.py
-
-# 运行 PID 控制测试（含 Kp 参数扫描）
-python tests/test_pid.py
-
-# 运行 SMC 控制测试（含切换函数对比和 η 扫描）
-python tests/test_smc.py
+cd tests && python3 -m pytest -v
 ```
 
-也可以在 Python 中直接调用：
+### 运行实验
+
+```bash
+# PID 调参实验（Kp/Ki/Kd 参数扫描）
+cd experiments && python3 pid_tuning.py
+
+# SMC 调参实验（η/λ 扫描 + 切换函数对比）
+cd experiments && python3 smc_tuning.py
+
+# PID vs SMC 控制器对比
+cd experiments && python3 controller_comparison.py
+
+# 不同轨迹对比
+cd experiments && python3 trajectory_comparison.py
+```
+
+### Python API
 
 ```python
-from msd import run_from_config
+from msd import SimConfig, run_from_config, compute_metrics, ParameterSweep
 
-result = run_from_config("tests/configs/pid_step.yaml")
+# 单次仿真
+config = SimConfig.from_yaml("tests/configs/pid_step.yaml")
+result = run_from_config(config)
+result.metrics = compute_metrics(result)
+
+# 参数扫描实验
+sweep = ParameterSweep(
+    name="pid_kp_sweep",
+    base_config=config,
+    param_path="controller_params.kp",
+    values=[2, 5, 10, 20, 50],
+)
+sweep.run_and_save("results")
 ```
 
 ## Project Structure
@@ -47,7 +72,7 @@ mass_spring_damper/
 ├── msd/                    # 核心库
 │   ├── plant.py            # 被控对象（MassSpringDamper）
 │   ├── controller/         # 控制器包
-│   │   ├── base.py         # 控制器抽象基类
+│   │   ├── base.py         # 控制器抽象基类（含 extras 机制）
 │   │   ├── step_input.py   # 开环阶跃输入
 │   │   ├── pid.py          # PID 控制器
 │   │   ├── smc.py          # 滑模控制器
@@ -55,13 +80,25 @@ mass_spring_damper/
 │   ├── reference.py        # 参考轨迹
 │   ├── disturbance.py      # 扰动模型
 │   ├── simulator.py        # 仿真器
-│   ├── visualizer.py       # 可视化
+│   ├── visualizer.py       # 可视化（时域图、相图、指标图）
 │   ├── result.py           # 仿真结果数据类
+│   ├── metrics.py          # 性能指标计算
+│   ├── experiment.py       # 实验运行器（参数扫描、控制器对比）
 │   └── config.py           # 配置系统与工厂函数
-├── tests/                  # 测试与示例脚本
-│   └── configs/            # YAML 配置文件
+├── experiments/            # 实验脚本
+│   ├── pid_tuning.py       # PID 调参
+│   ├── smc_tuning.py       # SMC 调参
+│   ├── controller_comparison.py  # 控制器对比
+│   └── trajectory_comparison.py  # 轨迹对比
+├── tests/                  # pytest 单元测试
+│   ├── configs/            # YAML 配置文件
+│   ├── test_plant.py
+│   ├── test_simulator.py
+│   ├── test_pid.py
+│   ├── test_smc.py
+│   └── test_disturbance.py
 ├── docs/                   # 技术文档
-├── results/                # 仿真输出（gitignored）
+├── results/                # 实验输出（gitignored）
 ├── requirements.txt
 └── CHANGELOG.md
 ```
@@ -78,6 +115,7 @@ mass_spring_damper/
 - [参考轨迹](docs/reference.md)
 - [扰动模型](docs/disturbance.md)
 - [仿真器](docs/simulator.md)
+- [重构计划](docs/refactoring-001.md)
 
 ## License
 

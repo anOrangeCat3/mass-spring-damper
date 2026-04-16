@@ -60,11 +60,18 @@ class Simulator:
         control_log = np.zeros(n_steps)
         reference_log = np.zeros(n_steps)
         disturbance_log = np.zeros(n_steps)
+        extras_log: dict[str, list[float]] = {}
 
         for i in range(n_steps):
             ref = ref_fn(t)
             d = dist_fn(t)
             u = self.controller.compute(y, t, reference=ref)
+
+            # 采集控制器诊断信号
+            for key, val in self.controller.extras.items():
+                if key not in extras_log:
+                    extras_log[key] = [0.0] * i
+                extras_log[key].append(val)
 
             # 记录当前步数据
             time_log[i] = t
@@ -84,6 +91,9 @@ class Simulator:
             y = sol.y[:, -1]
             t += dt_actual
 
+        # 转换 extras 为 numpy 数组
+        extras = {k: np.array(v) for k, v in extras_log.items()}
+
         config = {
             "plant": repr(self.plant),
             "controller": self.controller.name,
@@ -101,4 +111,5 @@ class Simulator:
             control=control_log,
             reference=reference_log,
             disturbance=disturbance_log,
+            extras=extras,
         )

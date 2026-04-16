@@ -47,6 +47,7 @@ class SMCController(Controller):
         u_max: float = np.inf,
         estimate_reference_derivative: bool = False,
     ):
+        super().__init__()
         self.m = m
         self.c = c
         self.k = k
@@ -105,6 +106,9 @@ class SMCController(Controller):
 
         # 可选输出限幅
         u = float(np.clip(u, self.u_min, self.u_max))
+
+        # 记录诊断信号
+        self._extras = {"error": e, "s": s, "u_eq": u_eq, "u_sw": u_sw}
 
         self._prev_reference = reference
         return u

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.0] - 2026-04-16
+
+### Summary
+
+实验框架重构：新增性能指标计算、实验运行器、Visualizer 增强、pytest 单元测试。测试与实验分离。
+
+### Added
+
+- Controller extras 机制：控制器在 `compute()` 中暴露内部诊断信号（PID: error/p/i/d_term，SMC: s/u_eq/u_sw/error），Simulator 自动采集，SimResult 存储
+- `msd/metrics.py`：性能指标计算模块，支持 overshoot、settling_time、rise_time、steady_state_error、rmse、iae、ise、max_control、control_energy、phase_lag，按 Reference 类型自动选择适用指标
+- `msd/experiment.py`：实验运行器，`ParameterSweep`（参数扫描）和 `ControllerComparison`（控制器对比），自动保存数据 + 图表 + 报告
+- Visualizer 新增：`error`（跟踪误差）、`sliding_surface`（SMC 滑模面）、PID 各分量等 extras 绘图项；`plot_phase()`（相图）、`plot_metrics_bar()`（指标柱状图）、`plot_metrics_vs_param()`（指标随参数变化折线图）
+- `experiments/` 目录：`pid_tuning.py`、`smc_tuning.py`、`controller_comparison.py`、`trajectory_comparison.py`
+- pytest 单元测试：`test_plant.py`、`test_simulator.py`、`test_pid.py`、`test_smc.py`、`test_disturbance.py`（共 21 个测试）
+- 重构设计文档：`docs/refactoring-001.md`
+
+### Changed
+
+- `SimResult` 新增 `extras: dict[str, np.ndarray]` 字段，save/load 兼容
+- `tests/` 从开发验证脚本重构为 pytest 单元测试
+- README 更新：新增实验框架和 API 示例
+
 ## [0.0.5] - 2026-04-16
 
 ### Summary

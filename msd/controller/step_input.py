@@ -7,6 +7,7 @@ class StepInput(Controller):
     """开环阶跃输入：在 t >= t_step 时输出固定幅值。"""
 
     def __init__(self, amplitude: float = 1.0, t_step: float = 0.0):
+        super().__init__()
         self.amplitude = amplitude
         self.t_step = t_step
 

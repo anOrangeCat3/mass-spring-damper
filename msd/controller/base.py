@@ -5,7 +5,14 @@ import numpy as np
 
 
 class Controller(ABC):
-    """控制器抽象基类。所有控制算法继承此类。"""
+    """控制器抽象基类。所有控制算法继承此类。
+
+    子类在 compute() 中可通过 self._extras 暴露内部诊断信号，
+    Simulator 会在每步后读取并记录到 SimResult.extras。
+    """
+
+    def __init__(self):
+        self._extras: dict[str, float] = {}
 
     @abstractmethod
     def compute(self, state: np.ndarray, t: float, reference: float = 0.0) -> float:
@@ -20,6 +27,11 @@ class Controller(ABC):
             控制输入 u
         """
         pass
+
+    @property
+    def extras(self) -> dict[str, float]:
+        """当前步的诊断信号，由 compute() 内部填充。"""
+        return self._extras
 
     def reset(self):
         """重置控制器内部状态（积分项、历史值等）。

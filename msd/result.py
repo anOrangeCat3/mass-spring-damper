@@ -17,6 +17,7 @@ class SimResult:
         control: 控制力序列, shape (n,)
         reference: 参考轨迹序列, shape (n,)
         disturbance: 扰动序列, shape (n,)
+        extras: 控制器诊断信号, {"signal_name": shape (n,) array}
         metrics: 性能指标字典
     """
     config: dict
@@ -25,6 +26,7 @@ class SimResult:
     control: np.ndarray
     reference: np.ndarray
     disturbance: np.ndarray
+    extras: dict[str, np.ndarray] = field(default_factory=dict)
     metrics: dict = field(default_factory=dict)
 
     @property
@@ -68,7 +70,8 @@ class SimResult:
                 default_flow_style=False, allow_unicode=True, sort_keys=False,
             )
 
-        # 保存数据 (npz)
+        # 保存数据 (npz)，extras 以 extra_ 前缀存储
+        extra_arrays = {f"extra_{k}": v for k, v in self.extras.items()}
         np.savez(
             result_dir / "data.npz",
             time=self.time,
@@ -76,6 +79,7 @@ class SimResult:
             control=self.control,
             reference=self.reference,
             disturbance=self.disturbance,
+            **extra_arrays,
         )
 
         print(f"Results saved to {result_dir}")
@@ -138,6 +142,9 @@ class SimResult:
 
         data = np.load(result_dir / "data.npz")
 
+        # 还原 extras：提取 extra_ 前缀的数组
+        extras = {k[6:]: data[k] for k in data.files if k.startswith("extra_")}
+
         return SimResult(
             config=config,
             time=data["time"],
@@ -145,4 +152,5 @@ class SimResult:
             control=data["control"],
             reference=data["reference"],
             disturbance=data["disturbance"],
+            extras=extras,
         )

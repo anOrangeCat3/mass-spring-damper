@@ -33,6 +33,7 @@ class PIDController(Controller):
         u_min: float = -np.inf,
         u_max: float = np.inf,
     ):
+        super().__init__()
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -79,6 +80,11 @@ class PIDController(Controller):
             if u_clipped != u:
                 self._integral -= error * self.dt
             u = u_clipped
+
+        # 记录诊断信号
+        self._extras = {
+            "error": error, "p_term": p_term, "i_term": i_term, "d_term": d_term,
+        }
 
         # 更新历史值
         self._prev_error = error
